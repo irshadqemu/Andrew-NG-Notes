@@ -138,53 +138,53 @@ Adding regularization to neural networks (NN) is an effective strategy for reduc
 
 #### L1 Matrix Norm:
 The L1 norm of a matrix $W$, also known as the Manhattan norm, is defined as the sum of the absolute values of all its elements:
-$$
+```math
 ||W||_1 = \sum_{i,j} |w_{i,j}|
-$$
+```
 
 #### L2 Matrix Norm and Frobenius Norm:
 The L2 norm of a matrix, when referred to in the context of matrices, is commonly called the Frobenius norm. It is calculated as the square root of the sum of the squares of all elements in the matrix $A$:
-$$
+```math
 ||A||_F = \sqrt{\sum_{i}\sum_{j} |a_{ij}|^2}
-$$
+```
 
 
 #### Regularization for Logistic Regression:
 To incorporate regularization in logistic regression, modifications are made to the cost function $J(w,b)$. The original cost function, aimed at being minimized, is:
-$$
+```math
 J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)})
-$$
+```
 where $L$ is the loss function, $m$ is the number of training examples, $y^{(i)}$ is the actual output, and $\hat{y}^{(i)}$ is the predicted output.
 
 The L2 regularization version of the cost function is:
-$$
+```math
 J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{2m} \sum |w_i|^2
-$$
+```
 where $\lambda$ is the regularization parameter.
 
 The L1 regularization version of the cost function is:
-$$
+```math
 J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{m} \sum |w_i|
-$$
+```
 
 L1 regularization can lead to many weights becoming zero, which can reduce the model size by effectively removing some features. L2 regularization, more commonly used, tends to distribute the penalty among all weights, leading to smaller and more uniform values.
 
 #### Regularization for Neural Networks:
 The incorporation of L2 regularization in neural networks modifies the cost function to:
-$$
+```math
 J(W_1,b_1,\ldots,W_L,b_L) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{2m} \sum_{l=1}^{L} ||W^{[l]}||_F^2
-$$
+```
 where $L$ is the number of layers, and $||W^{[l]}||_F^2$ is the Frobenius norm of the weight matrix at layer $l$.
 
 During backpropagation, the derivative of the weights with respect to the cost function is adjusted to include the regularization term:
-$$
+```math
 dW^{[l]} = \text{from backpropagation} + \frac{\lambda}{m} W^{[l]}
-$$
+```
 
 This adjustment leads to a weight update rule that incorporates weight decay:
-$$
+```math
 W^{[l]} = W^{[l]} - \alpha \left( dW^{[l]} \right) = W^{[l]} - \alpha \left( \text{from backpropagation} + \frac{\lambda}{m} W^{[l]} \right) = \left(1 - \frac{\alpha \lambda}{m}\right) W^{[l]} - \alpha \left( \text{from backpropagation} \right)
-$$
+```
 
 This process introduces weight decay, effectively penalizing large weights and promoting a model with smaller weights, thereby reducing complexity and potential overfitting. The term $\left(1 - \frac{\alpha \lambda}{m}\right)$ causes the weights to decay proportionally to their size, a key aspect of regularization in neural networks.
 
