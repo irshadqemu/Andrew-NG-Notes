@@ -141,7 +141,10 @@ The L1 norm of a matrix $W$, also known as the Manhattan norm, is defined as the
 ```math
 ||W||_1 = \sum_{i,j} |w_{i,j}|
 ```
+$$||W||_1 = \sum_{{i,j}} |w_{{i,j}}|$$
 
+
+$$\left( \sum_{k=1}^n a_k b_k \right)^2 \leq \left( \sum_{k=1}^n a_k^2 \right) \left( \sum_{k=1}^n b_k^2 \right)$$
 #### L2 Matrix Norm and Frobenius Norm:
 The L2 norm of a matrix, when referred to in the context of matrices, is commonly called the Frobenius norm. It is calculated as the square root of the sum of the squares of all elements in the matrix $A$:
 ```math
