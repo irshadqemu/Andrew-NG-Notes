@@ -176,14 +176,13 @@ $$J(W_ 1,b_ 1,\ldots,W_ L,b_ L) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \
 where $L$ is the number of layers, and $||W^{[l]}||_F^2$ is the Frobenius norm of the weight matrix at layer $l$.
 
 During backpropagation, the derivative of the weights with respect to the cost function is adjusted to include the regularization term:
-```math
-dW^{[l]} = \text{from backpropagation} + \frac{\lambda}{m} W^{[l]}
-```
+
+$$dW^{[l]} = \text{from backpropagation} + \frac{\lambda}{m} W^{[l]}$$
+
 
 This adjustment leads to a weight update rule that incorporates weight decay:
-```math
-W^{[l]} = W^{[l]} - \alpha \left( dW^{[l]} \right) = W^{[l]} - \alpha \left( \text{from backpropagation} + \frac{\lambda}{m} W^{[l]} \right) = \left(1 - \frac{\alpha \lambda}{m}\right) W^{[l]} - \alpha \left( \text{from backpropagation} \right)
-```
+
+$$W^{[l]} = W^{[l]} - \alpha \left( dW^{[l]} \right) = W^{[l]} - \alpha \left( \text{from backpropagation} + \frac{\lambda}{m} W^{[l]} \right) = \left(1 - \frac{\alpha \lambda}{m}\right) W^{[l]} - \alpha \left( \text{from backpropagation} \right)$$
 
 This process introduces weight decay, effectively penalizing large weights and promoting a model with smaller weights, thereby reducing complexity and potential overfitting. The term $\left(1 - \frac{\alpha \lambda}{m}\right)$ causes the weights to decay proportionally to their size, a key aspect of regularization in neural networks.
 
