@@ -132,50 +132,62 @@ Here are the course summary as its given on the course [link](https://www.course
 - You should try the previous two points until you have a low bias and low variance.
 - In the older days before deep learning, there was a "Bias/variance tradeoff". But because now you have more options/tools for solving the bias and variance problem its really helpful to use deep learning.
 - Training a bigger neural network never hurts.
-
 ### Regularization
 
-- Adding regularization to NN will help it reduce variance (overfitting)
-- L1 matrix norm:
-  
-  - `||W|| = Sum(|w[i,j]|)  # sum of absolute values of all w`
-- L2 matrix norm because of arcane technical math reasons is called Frobenius norm:
-  - `||W||^2 = Sum(|w[i,j]|^2)	# sum of all w squared`
-  - Also can be calculated as `||W||^2 = W.T * W`
-- Regularization for logistic regression:
-  - The normal cost function that we want to minimize is: `J(w,b) = (1/m) * Sum(L(y(i),y'(i)))`
-  - The L2 regularization version: `J(w,b) = (1/m) * Sum(L(y(i),y'(i))) + (lambda/2m) * Sum(|w[i]|^2)`
-  - The L1 regularization version: `J(w,b) = (1/m) * Sum(L(y(i),y'(i))) + (lambda/2m) * Sum(|w[i]|)`
-  - The L1 regularization version makes a lot of w values become zeros, which makes the model size smaller.
-  - L2 regularization is being used much more often.
-  - `lambda` here is the regularization parameter (hyperparameter)
-- Regularization for NN:
-  - The normal cost function that we want to minimize is:   
-    `J(W1,b1...,WL,bL) = (1/m) * Sum(L(y(i),y'(i)))`
+Adding regularization to neural networks (NN) is an effective strategy for reducing overfitting, thereby decreasing variance without significantly increasing bias. It works by introducing a penalty on the magnitude of parameters, which helps to simplify the model. This penalty encourages the model to learn the most essential patterns in the data, potentially improving generalization to unseen data.
 
-  - The L2 regularization version:   
-    `J(w,b) = (1/m) * Sum(L(y(i),y'(i))) + (lambda/2m) * Sum((||W[l]||^2)`
+#### L1 Matrix Norm:
+The L1 norm of a matrix $W$, also known as the Manhattan norm, is defined as the sum of the absolute values of all its elements:
+$$
+||W||_1 = \sum_{i,j} |w_{i,j}|
+$$
 
-  - We stack the matrix as one vector `(mn,1)` and then we apply `sqrt(w1^2 + w2^2.....)`
+#### L2 Matrix Norm and Frobenius Norm:
+The L2 norm of a matrix, when referred to in the context of matrices, is commonly called the Frobenius norm. It is calculated as the square root of the sum of the squares of all elements in the matrix $A$:
+$$
+||A||_F = \sqrt{\sum_{i}\sum_{j} |a_{ij}|^2}
+$$
 
-  - To do back propagation (old way):   
-    `dw[l] = (from back propagation)`
 
-  - The new way:   
-    `dw[l] = (from back propagation) + lambda/m * w[l]`
+#### Regularization for Logistic Regression:
+To incorporate regularization in logistic regression, modifications are made to the cost function $J(w,b)$. The original cost function, aimed at being minimized, is:
+$$
+J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)})
+$$
+where $L$ is the loss function, $m$ is the number of training examples, $y^{(i)}$ is the actual output, and $\hat{y}^{(i)}$ is the predicted output.
 
-  - So plugging it in weight update step:
+The L2 regularization version of the cost function is:
+$$
+J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{2m} \sum |w_i|^2
+$$
+where $\lambda$ is the regularization parameter.
 
-    - ```
-      w[l] = w[l] - learning_rate * dw[l]
-           = w[l] - learning_rate * ((from back propagation) + lambda/m * w[l])
-           = w[l] - (learning_rate*lambda/m) * w[l] - learning_rate * (from back propagation) 
-           = (1 - (learning_rate*lambda)/m) * w[l] - learning_rate * (from back propagation)
-      ```
+The L1 regularization version of the cost function is:
+$$
+J(w,b) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{m} \sum |w_i|
+$$
 
-  - In practice this penalizes large weights and effectively limits the freedom in your model.
+L1 regularization can lead to many weights becoming zero, which can reduce the model size by effectively removing some features. L2 regularization, more commonly used, tends to distribute the penalty among all weights, leading to smaller and more uniform values.
 
-  - The new term `(1 - (learning_rate*lambda)/m) * w[l]`  causes the **weight to decay** in proportion to its size.
+#### Regularization for Neural Networks:
+The incorporation of L2 regularization in neural networks modifies the cost function to:
+$$
+J(W_1,b_1,\ldots,W_L,b_L) = \frac{1}{m} \sum L(y^{(i)}, \hat{y}^{(i)}) + \frac{\lambda}{2m} \sum_{l=1}^{L} ||W^{[l]}||_F^2
+$$
+where $L$ is the number of layers, and $||W^{[l]}||_F^2$ is the Frobenius norm of the weight matrix at layer $l$.
+
+During backpropagation, the derivative of the weights with respect to the cost function is adjusted to include the regularization term:
+$$
+dW^{[l]} = \text{from backpropagation} + \frac{\lambda}{m} W^{[l]}
+$$
+
+This adjustment leads to a weight update rule that incorporates weight decay:
+$$
+W^{[l]} = W^{[l]} - \alpha \left( dW^{[l]} \right) = W^{[l]} - \alpha \left( \text{from backpropagation} + \frac{\lambda}{m} W^{[l]} \right) = \left(1 - \frac{\alpha \lambda}{m}\right) W^{[l]} - \alpha \left( \text{from backpropagation} \right)
+$$
+
+This process introduces weight decay, effectively penalizing large weights and promoting a model with smaller weights, thereby reducing complexity and potential overfitting. The term $\left(1 - \frac{\alpha \lambda}{m}\right)$ causes the weights to decay proportionally to their size, a key aspect of regularization in neural networks.
+
 
 
 ### Why regularization reduces overfitting?
