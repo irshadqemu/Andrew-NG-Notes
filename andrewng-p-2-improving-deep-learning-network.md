@@ -187,42 +187,61 @@ $$W^{[l]} = W^{[l]} - \alpha \left( dW^{[l]} \right) = W^{[l]} - \alpha \left( \
 This process introduces weight decay, effectively penalizing large weights and promoting a model with smaller weights, thereby reducing complexity and potential overfitting. The term $\left(1 - \frac{\alpha \lambda}{m}\right)$ causes the weights to decay proportionally to their size, a key aspect of regularization in neural networks.
 
 
+### How Regularization Reduces Overfitting
 
-### Why regularization reduces overfitting?
+Regularization is a strategy employed to prevent neural networks from overfitting the training data, thereby enhancing the model's generalization to unseen data. Below are the refined explanations with LaTeX formatting for mathematical symbols:
 
-Here are some intuitions:
-  - Intuition 1:
-     - If `lambda` is too large - a lot of w's will be close to zeros which will make the NN simpler (you can think of it as it would behave closer to logistic regression).
-     - If `lambda` is good enough it will just reduce some weights that makes the neural network overfit.
-  - Intuition 2 (with _tanh_ activation function):
-     - If `lambda` is too large, w's will be small (close to zero) - will use the linear part of the _tanh_ activation function, so we will go from non linear activation to _roughly_ linear which would make the NN a _roughly_ linear classifier.
-     - If `lambda` good enough it will just make some of _tanh_ activations _roughly_ linear which will prevent overfitting.
-     
+#### Impact of Regularization Strength ($\lambda$):
 
-_**Implementation tip**_: if you implement gradient descent, one of the steps to debug gradient descent is to plot the cost function J as a function of the number of iterations of gradient descent and you want to see that the cost function J decreases **monotonically** after every elevation of gradient descent with regularization. If you plot the old definition of J (no regularization) then you might not see it decrease monotonically.
+- **High $\lambda$ (Strong Regularization)**: Applies a significant penalty on larger weights, forcing many of them towards zero. This effect simplifies the neural network by essentially removing the nueron from network and make the network closer to as logistic regression.
+  
+  $$ \text{For high } \lambda, \quad w \approx 0  $$
 
+- **Optimal $\lambda$**: Properly penalizes and reduces only the weights that contribute most to overfitting, without excessively simplifying the model. This balanced approach maintains the model's ability to learn complex patterns while avoiding an over-reliance on the specificities of the training data.
+  
+  $$ \text{For optimal } \lambda, \quad \text{reduces overfitting weights} $$
+
+#### Regularization with $\tanh$ Activation Function:
+
+weights are penalized to be small, the values of the input to the $tanh function (z) also become small. As a result, the tanh function behaves more linearly, similar to a linear regression function.
+
+
+
+- **Implementation tip**:
+  - When implementing gradient descent, a useful debugging step is to plot the cost function $J$ against the number of iterations. With regularization included, it's expected that $J$ should decrease **monotonically** with each iteration. This monotonic decrease indicates that the regularization is helping to prevent overfitting by penalizing large weights. However, if you plot $J$ without incorporating regularization, you may observe that it does not decrease monotonically. This lack of a monotonic decrease can occur because the cost function might be overly fitting the training data, capturing noise rather than the underlying data distribution.
 
 ### Dropout Regularization
 
 - In most cases Andrew Ng tells that he uses the L2 regularization.
-- The dropout regularization eliminates some neurons/weights on each iteration based on a probability.
-- A most common technique to implement dropout is called "Inverted dropout".
-- Code for Inverted dropout:
 
-  ```python
-  keep_prob = 0.8   # 0 <= keep_prob <= 1
-  l = 3  # this code is only for layer 3
-  # the generated number that are less than 0.8 will be dropped. 80% stay, 20% dropped
-  d3 = np.random.rand(a[l].shape[0], a[l].shape[1]) < keep_prob
+Inverted Dropout is a regularization technique used to prevent overfitting in neural networks by randomly disabling neurons during training. It's called "inverted" because it scales the active neurons by the inverse of the dropout rate, ensuring that the overall activation level remains consistent between training and testing. It forces the nuerons to not rely too much on particular activation/input feature
 
-  a3 = np.multiply(a3,d3)   # keep only the values in d3
+## Implementation Example in Python:
 
-  # increase a3 to not reduce the expected value of output
-  # (ensures that the expected value of a3 remains the same) - to solve the scaling problem
-  a3 = a3 / keep_prob       
-  ```
-- Vector d[l] is used for forward and back propagation and is the same for them, but it is different for each iteration (pass) or training example.
-- At test time we don't use dropout. If you implement dropout at test time - it would add noise to predictions.
+For a layer $l = 3$ with a keep probability of $\text{keep\_prob} = 0.8$:
+
+```python
+import numpy as np
+
+# Assuming 'a3' is the activation from the previous layer
+D3 = np.random.rand(a3.shape[0], a3.shape[1]) < keep_prob
+a3 = np.multiply(a3, D3)  # Apply the mask to shut down some neurons
+a3 /= keep_prob           # Scale the activations to maintain the same expected value
+```
+
+* The dropout mask `D3` is a boolean array where elements are `True` with a probability equal to the `keep_prob`. This is achieved using a random number generator and a threshold comparison.
+
+* The activations `a3` are multiplied element-wise by `D3` to shut off a percentage of neurons.
+* The remaining activations are then divided by `keep_prob`. This is crucial because it compensates for the reduced number of active neurons, keeping the sum of activations consistent with what it would be without dropout.
+* By multiplying the gradients by D3 during backpropagation, we ensure that the dropped neurons do not contribute to the learning process, as their gradients will be zero..
+
+
+- **Example Implications**:
+  - With 50 neurons in a layer, and `keep_prob` set to 0.8, you would expect on average 10 neurons to be turned off during each training step.
+  - The subsequent layer's inputs $Z^{[4]}$ would be computed as $W^{[4]} \cdot a^{[3]} + b^{[4]}$, with $a^{[3]}$ already scaled appropriately.
+
+- **Testing Phase**: During the testing phase, dropout is not applied. All neurons are kept active, and no scaling is necessary since the model was trained with inverted dropout.
+
 
 ### Understanding Dropout
 
@@ -259,76 +278,113 @@ _**Implementation tip**_: if you implement gradient descent, one of the steps to
   - It reduces the generalization error.
   - You can use some snapshots of your NN at the training ensembles them and take the results.
 
-### Normalizing inputs
+Incorporating the correct LaTeX syntax for GitHub Markdown, here is the enhanced version of your notes with inline and block math expressions properly enclosed:
 
-- If you normalize your inputs this will speed up the training process a lot.
-- Normalization are going on these steps:
-  1. Get the mean of the training set: `mean = (1/m) * sum(x(i))`
-  2. Subtract the mean from each input: `X = X - mean`
-     - This makes your inputs centered around 0.
-  3. Get the variance of the training set: `variance = (1/m) * sum(x(i)^2)`
-  4. Normalize the variance. `X /= variance`
-- These steps should be applied to training, dev, and testing sets (but using mean and variance of the train set).
-- Why normalize?
-  - If we don't normalize the inputs our cost function will be deep and its shape will be inconsistent (elongated) then optimizing it will take a long time.
-  - But if we normalize it the opposite will occur. The shape of the cost function will be consistent (look more symmetric like circle in 2D example) and we can use a larger learning rate alpha - the optimization will be faster.
+### Normalizing Inputs
 
-### Vanishing / Exploding gradients
+Normalizing inputs is a crucial pre-processing step in the training of deep learning models. It significantly accelerates the training process by ensuring the optimization algorithm works more efficiently.
 
-- The Vanishing / Exploding gradients occurs when your derivatives become very small or very big.
-- To understand the problem, suppose that we have a deep neural network with number of layers L, and all the activation functions are **linear** and each `b = 0`
-  - Then:   
-    ```
-    Y' = W[L]W[L-1].....W[2]W[1]X
-    ```
-  - Then, if we have 2 hidden units per layer and x1 = x2 = 1, we result in:
+#### Steps for Normalization:
 
-    ```
-    if W[l] = [1.5   0] 
-              [0   1.5] (l != L because of different dimensions in the output layer)
-    Y' = W[L] [1.5  0]^(L-1) X = 1.5^L 	# which will be very large
-              [0  1.5]
-    ```
-    ```
-    if W[l] = [0.5  0]
-              [0  0.5]
-    Y' = W[L] [0.5  0]^(L-1) X = 0.5^L 	# which will be very small
-              [0  0.5]
-    ```
-- The last example explains that the activations (and similarly derivatives) will be decreased/increased exponentially as a function of number of layers.
-- So If W > I (Identity matrix) the activation and gradients will explode.
-- And If W < I (Identity matrix) the activation and gradients will vanish.
-- Recently Microsoft trained 152 layers (ResNet)! which is a really big number. With such a deep neural network, if your activations or gradients increase or decrease exponentially as a function of L, then these values could get really big or really small. And this makes training difficult, especially if your gradients are exponentially smaller than L, then gradient descent will take tiny little steps. It will take a long time for gradient descent to learn anything.
-- There is a partial solution that doesn't completely solve this problem but it helps a lot - careful choice of how you initialize the weights (next video).
+1.The mean ($\mu$) of the training set is computed by averaging over all $m$ examples:
+   $$\mu = \frac{1}{m} \sum_{i=1}^{m} x^{(i)}$$
+   This step helps in centering the data around 0.
+
+2. Once the mean is calculated, it is subtracted from each input feature:
+   $$X := X - \mu$$
+   This process centers your inputs around 0, making it easier for the model to learn the data distribution.
+
+3. The variance ($\sigma^2$) provides a measure of how much the values in the dataset differ from the mean. It is caluculated as
+   $$\sigma^2 = \frac{1}{m} \sum_{i=1}^{m} (x^{(i)})^2$$
+
+4.
+   Finally, divide each input by the variance, which normalizes the variance:
+   $$X := \frac{X}{\sigma^2}$$
+   This step ensures that the inputs have a uniform scale, which further aids in the optimization process.
+
+#### Application to Data Sets:
+- It's essential to apply these normalization steps to the training, development (dev), and testing sets using the mean and variance computed from the **training set only**. This approach prevents any data leakage from the test set into the model training process and ensures that the model learns features that generalize well to unseen data.
+
+#### Importance of Normalizing Inputs:
+- Without normalization, the cost function can assume a very steep and elongated shape, making the optimization process (gradient descent) slow and inefficient due to the varying scales of input features.
+- Normalizing inputs results in a more symmetric and consistent shape of the cost function (akin to a circle in a 2D example), allowing for a larger learning rate ($\alpha$). This significantly speeds up convergence to the global minimum of the cost function, thereby accelerating the overall training process.
+
+By following these steps and understanding their significance, you can ensure a smoother and faster training process for your deep learning models, leading to more robust and generalizable outcomes.
+Improving the readability and incorporating LaTeX for mathematical expressions, your notes on Vanishing/Exploding Gradients and Weight Initialization for Deep Networks are refined as follows:
+
+### Vanishing / Exploding Gradients
+
+Vanishing or exploding gradients occur when the derivatives in a deep neural network become very small or very large, respectively. This phenomenon significantly impacts the training process of deep networks.
+
+- **Understanding the Problem:** Consider a deep neural network with $L$ layers, where all activation functions are linear and each bias term $b = 0$. For simplicity, assume we have 2 hidden units per layer and $x_1 = x_2 = 1$. Then, the output $Y'$ can be represented as:
+  $$\hat{Y} = W^{[L]}W^{[L-1]} \cdots W^{[2]}W^{[1]}X$$
+  
+ Considering the weights \(W^{[l]}$ at layer $l$ (excluding the final layer for dimensionality reasons), we can see two cases:
+
+- If $W^{[l]} = \begin{bmatrix}1.5  &0 \\ 0 & 1.5\end{bmatrix}$, then:
+  $$\hat{Y} = W^{[L]} \left( \begin{bmatrix}(1.5) & 0 \\ 0 & (1.5)\end{bmatrix}^{L-1} \right) X$$
+  $$\hat{Y} = W^{[L]} \left( \begin{bmatrix}(1.5)^{L-1} & 0 \\ 0 & (1.5)^{L-1}\end{bmatrix} \right) X$$
+  The output $\hat{Y}$ will exponentially increase with the number of layers $L$, leading to exploding gradients.
+  
+- If $W^{[l]} = \begin{bmatrix}0.5  &0 \\ 0 & 0.5\end{bmatrix}$, then:
+  $$\hat{Y} = W^{[L]} \left( \begin{bmatrix}(0.5) & 0 \\ 0 & (0.5)\end{bmatrix}^{L-1} \right) X$$
+  $$\hat{Y} = W^{[L]} \left( \begin{bmatrix}(0.5)^{L-1} & 0 \\ 0 & (0.5)^{L-1}\end{bmatrix} \right) X$$
+  The output $\hat{Y}$ will exponentially decrease with the number of layers $L$, resulting in vanishing gradients.
+
+- **Consequences:** If $W > I$ (Identity matrix), activations and gradients will explode. Conversely, if $W < I$, they will vanish. Training deep networks like Microsoft's 152-layer ResNet becomes challenging under these conditions, as gradients too large or too small hinder the learning process.
+
+- **Partial Solution:** A careful choice in the initialization of weights can mitigate the vanishing/exploding gradient problem significantly.
 
 ### Weight Initialization for Deep Networks
 
-- A partial solution to the Vanishing / Exploding gradients in NN is better or more careful choice of the random initialization of weights
-- In a single neuron (Perceptron model): `Z = w1x1 + w2x2 + ... + wnxn`
+A more careful choice of weight initialization can partially address the vanishing/exploding gradient issues in neural networks.
+
+- In a single neuron (Perceptron model), the input to the activation function $Z$ is a linear combination of inputs:
+  $$Z = w_1x_1 + w_2x_2 + \ldots + w_{n_x}x_{n_x}$$
   
-  - So if `n_x` is large we want `W`'s to be smaller to not explode the cost.
-- So it turns out that we need the variance which equals `1/n_x` to be the range of `W`'s
-- So lets say when we initialize `W`'s like this (better to use with `tanh` activation):   
-  ```
-  np.random.rand(shape) * np.sqrt(1/n[l-1])
-  ```
-  or variation of this (Bengio et al.):   
-  ```
-  np.random.rand(shape) * np.sqrt(2/(n[l-1] + n[l]))
-  ```
-- Setting initialization part inside sqrt to `2/n[l-1]` for `ReLU` is better:   
-  ```
-  np.random.rand(shape) * np.sqrt(2/n[l-1])
-  ```
-- Number 1 or 2 in the nominator can also be a hyperparameter to tune (but not the first to start with)
-- This is one of the best way of partially solution to Vanishing / Exploding gradients (ReLU + Weight Initialization with variance) which will help gradients not to vanish/explode too quickly
-- The initialization in this video is called "He Initialization / Xavier Initialization" and has been published in 2015 paper.
+  To prevent the cost from exploding when $n_x$ (the number of inputs to a neuron) is large, it's beneficial to initialize the weights $W$'s such that their variance is inversely proportional to $n_x$.
+
+- **He Initialization / Xavier Initialization:** The variance for initializing the weights can be set as follows:
+  - For `tanh` activation functions:
+    $$W \sim \text{np.random.randn(shape)} \times \sqrt{\frac{1}{n^{[l-1]}}}$$
+    Bengio et al. suggest a variation:
+    $$W \sim \text{np.random.randn(shape)} \times \sqrt{\frac{2}{n^{[l-1]} + n^{[l]}}}$$
+  - For `ReLU` activations, initializing with:
+    $$W \sim \text{np.random.randn(shape)} \times \sqrt{\frac{2}{n^{[l-1]}}}$$
+    is considered better.
+
+The number 1 or 2 in the numerator within the square root can also be tuned as a hyperparameter, although it's not the first parameter to adjust. These initialization strategies, known as "He Initialization" and "Xavier Initialization," have been shown to help gradients from vanishing or exploding too quickly, especially in deep neural networks, as published in a 2015 paper.
+
 
 ### Numerical approximation of gradients
-
-- There is an technique called gradient checking which tells you if your implementation of backpropagation is correct.
-- There's a numerical way to calculate the derivative:   
+There's a numerical way to calculate the derivative:   
   ![](https://raw.githubusercontent.com/ashishpatel26/DeepLearning.ai-Summary/master/2-%20Improving%20Deep%20Neural%20Networks/Images//03-_Numerical_approximation_of_gradients.png)
+
+Gradient checking is a technique that verifies the correctness of your backpropagation implementation. It uses a numerical method to approximate the derivative, providing a way to ensure that the analytical gradients computed during backpropagation are accurate.
+
+- **Gradient Checking Process:**
+  1. Combine all parameters $W^{[1]}, b^{[1]}, \ldots, W^{[L]}, b^{[L]}$ into a single vector $\theta$.
+  2. Similarly, reshape gradients $dW^{[1]}, db^{[1]}, \ldots, dW^{[L]}, db^{[L]}$ into one vector $d\theta$ .
+  3. The cost function is denoted as $J(\theta)$  .
+  4. **Algorithm for Gradient Checking:**
+     $$\epsilon = 10^{-7}$$
+     For each $i$ in the length of $\theta$:
+     $$d\theta_{\text{approx}}[i] = \frac{J(\theta_1,\ldots,\theta_i + \epsilon) - J(\theta_1,\ldots,\theta_i - \epsilon)}{2\epsilon}$$
+  5. Evaluate the similarity of $d\theta_{\text{approx}}$ and $d\theta$ using the formula:
+     $$\frac{\|\ d\theta_{\text{approx}} - d\theta\ \|}{\|\ d\theta_{\text{approx}}\ \| + \|\ d\theta\ \|}$$
+     where $\|\cdot\|$ denotes the Euclidean norm. This comparison helps in determining the accuracy of the backpropagation gradients:
+     - If the result is < $10^{-7}$, the backpropagation implementation is likely correct.
+     - A result around $10^{-5}$ may still be acceptable, but it warrants a closer examination of $d\theta_{\text{approx}} - d\theta$.
+     - A result $\geq 10^{-3}$ indicates a potential bug in the backpropagation implementation.
+
+### Gradient Checking Implementation Notes
+
+- **Important Considerations:**
+  - Gradient checking should not be used during training due to its computational cost; it is best utilized for debugging.
+  - If gradient checking fails, inspect the components of $d\theta_{\text{approx}} - d\theta$ to identify any discrepancies.
+  - Remember to include regularization terms, if applicable, in $J(\theta)$. For L1 or L2 regularization, add $\frac{\lambda}{2m} \sum W^{[l]}$ to $J$.
+  - Gradient checking is incompatible with dropout directly because the cost function $J$ee is not consistent under dropout. To use gradient checking, temporarily disable dropout by setting `keep_prob = 1.0`, conduct the gradient check, and then re-enable dropout.
+  - It's beneficial to perform gradient checking after some training has occurred. Initial weights and biases close to zero might not reveal issues that become apparent with larger parameter values.
 - Gradient checking approximates the gradients and is very helpful for finding the errors in your backpropagation implementation but it's slower than gradient descent (so use only for debugging).
 - Implementation of this is very simple.
 - Gradient checking:
